@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quách Gia BBQ - Chấm Công</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#8B0000;--primary-dark:#6B0000;--accent:#D4A017;--success:#27ae60;--danger:#e74c3c;--info:#3498db;--text:#333;--bg:#f5f5f5;--border:#ddd}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3);border-bottom:3px solid var(--accent)}
+.header h1{font-size:18px;font-weight:700;margin-bottom:2px}
+.header .subtitle{font-size:11px;opacity:.8}
+.header .conn-status{font-size:10px;margin-top:4px}
+.header .conn-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
+.header .conn-dot.ok{background:#2ecc71}
+.header .conn-dot.fail{background:#e74c3c}
+.header .conn-dot.loading{background:#f39c12;animation:pulse 1s infinite}
+.container{flex:1;max-width:420px;margin:0 auto;padding:16px;width:100%}
+
+/* LOGIN */
+.login-card{background:white;border-radius:12px;padding:24px;box-shadow:0 4px 16px rgba(0,0,0,.1);text-align:center}
+.login-card .logo{font-size:48px;color:var(--primary);margin-bottom:12px}
+.login-card h2{font-size:18px;color:var(--primary);margin-bottom:16px}
+.login-card input{width:100%;padding:14px;border:2px solid var(--border);border-radius:8px;font-size:16px;text-align:center;letter-spacing:2px;font-weight:700;margin-bottom:12px;transition:border-color .2s}
+.login-card input:focus{outline:none;border-color:var(--primary)}
+.login-card .btn-login{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;transition:background .2s}
+.login-card .btn-login:hover{background:var(--primary-dark)}
+.login-card .btn-login:disabled{background:#ccc;cursor:not-allowed}
+
+/* MAIN */
+.main-screen{display:none}
+.emp-info{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.emp-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
+.emp-details h3{font-size:16px;font-weight:700}
+.emp-details .emp-sub{font-size:12px;color:#666}
+.emp-logout{margin-left:auto;background:none;border:none;color:#999;font-size:18px;cursor:pointer;padding:8px}
+.emp-logout:hover{color:var(--danger)}
+
+/* GPS */
+.gps-status{background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px}
+.gps-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.gps-dot.checking{background:#f39c12;animation:pulse 1s infinite}
+.gps-dot.ok{background:var(--success)}
+.gps-dot.fail{background:var(--danger)}
+.gps-dot.off{background:#ccc}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.gps-text{flex:1;font-size:12px}
+.gps-dist{font-weight:700;color:var(--primary)}
+
+/* CLOCK */
+.clock-card{background:white;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;text-align:center}
+.clock-time{font-size:48px;font-weight:700;color:var(--primary);font-family:'Courier New',monospace;margin-bottom:4px}
+.clock-date{font-size:14px;color:#666;margin-bottom:16px}
+.clock-buttons{display:flex;gap:12px}
+.btn-clock{flex:1;padding:16px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.btn-clock i{font-size:24px}
+.btn-clock:disabled{opacity:.4;cursor:not-allowed}
+.btn-checkin{background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;box-shadow:0 4px 12px rgba(39,174,96,.3)}
+.btn-checkin:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(39,174,96,.4)}
+.btn-checkout{background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;box-shadow:0 4px 12px rgba(231,76,60,.3)}
+.btn-checkout:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(231,76,60,.4)}
+
+/* STATUS */
+.status-msg{padding:12px;border-radius:8px;margin-bottom:12px;font-size:13px;font-weight:600;display:none;text-align:center;animation:fadeIn .3s}
+.status-msg.show{display:block}
+.status-msg.success{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.status-msg.error{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+.status-msg.warning{background:#fff8e1;color:#f57f17;border:1px solid #ffe082}
+.status-msg.info{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* COOLDOWN */
+.cooldown-bar{background:#fff3e0;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#e65100;display:none;text-align:center}
+.cooldown-bar.show{display:block}
+
+/* LOADING OVERLAY */
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-overlay.show{display:flex}
+.loading-spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:white;font-size:14px;font-weight:600}
+
+/* HISTORY */
+.history-card{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.history-card h3{font-size:14px;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.history-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.history-item:last-child{border-bottom:none}
+.history-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0}
+.history-icon.in{background:var(--success)}
+.history-icon.out{background:var(--danger)}
+.history-time{font-weight:700;font-family:'Courier New',monospace}
+.history-date{font-size:11px;color:#999}
+.history-hours{margin-left:auto;font-weight:700;color:var(--primary);font-size:12px}
+.no-history{text-align:center;color:#999;padding:16px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="header">
+    <h1><i class="fas fa-fire"></i> Quách Gia BBQ 郭家烤肉</h1>
+    <div class="subtitle">Hệ thống Chấm công Nhân viên</div>
+    <div class="conn-status"><span class="conn-dot loading" id="connDot"></span><span id="connText">Đang kết nối...</span></div>
+</div>
+<div class="container">
+    <!-- LOGIN -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <div class="logo"><i class="fas fa-user-clock"></i></div>
+            <h2>Đăng nhập Chấm công</h2>
+            <input type="text" id="loginCode" placeholder="Nhập mã nhân viên" maxlength="10" autocomplete="off">
+            <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Đăng nhập</button>
+            <div id="loginError" style="color:var(--danger);font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="mainScreen" class="main-screen">
+        <div class="emp-info">
+            <div class="emp-avatar" id="empAvatar">?</div>
+            <div class="emp-details">
+                <h3 id="empNameDisplay">—</h3>
+                <div class="emp-sub"><span id="empDeptDisplay">—</span> · <span id="empTypeDisplay">—</span> · <span id="empIdDisplay">—</span></div>
+            </div>
+            <button class="emp-logout" onclick="doLogout()" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+
+        <div class="gps-status" id="gpsStatus">
+            <div class="gps-dot off" id="gpsDot"></div>
+            <div class="gps-text" id="gpsText">Đang kiểm tra vị trí...</div>
+        </div>
+
+        <div class="cooldown-bar" id="cooldownBar">
+            <i class="fas fa-hourglass-half"></i> <span id="cooldownText"></span>
+        </div>
+
+        <div id="statusMsg" class="status-msg"></div>
+
+        <div class="clock-card">
+            <div class="clock-time" id="clockTime">00:00:00</div>
+            <div class="clock-date" id="clockDate">—</div>
+            <div class="clock-buttons">
+                <button class="btn-clock btn-checkin" id="btnCheckin" onclick="doCheckin()" disabled>
+                    <i class="fas fa-sign-in-alt"></i><span>VÀO CA</span>
+                </button>
+                <button class="btn-clock btn-checkout" id="btnCheckout" onclick="doCheckout()" disabled>
+                    <i class="fas fa-sign-out-alt"></i><span>TAN CA</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="history-card">
+            <h3><i class="fas fa-history"></i> Lịch sử chấm công <button onclick="loadHistory()" style="background:none;border:none;color:var(--info);cursor:pointer;font-size:12px;margin-left:auto"><i class="fas fa-sync-alt"></i></button></h3>
+            <div id="historyList"><div class="no-history">Đang tải...</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">Đang xử lý...</div>
+</div>
+
+<script>
+// ===== CẤU HÌNH =====
+var API_URL = 'https://script.google.com/macros/s/AKfycbycbK9uB4DiQ8D6x20RrFlZnbPXTxz5zczFxFOGxfWqjkGRoa41OjonOy0PYdPTkq9w/exec';
+var CONFIG = {
+    LAT: 11.0582514,
+    LNG: 106.7973154,
+    RADIUS: 100, // mét — bán kính 100m quanh quán
+    COOLDOWN: 9 * 60 * 60 * 1000, // 9 tiếng (ms)
+    TEST_MODE: false, // Production
+};
+
+// Danh sách NV
+var EMPLOYEES = [
+    // === FULLTIME - BẾP ===
+    {id:'BT001',name:'Cường Pu',nameCN:'強浦',dept:'Bếp',type:'Fulltime'},
+    {id:'BE006',name:'Thanh Phương',nameCN:'清芳',dept:'Bếp',type:'Fulltime'},
+    {id:'BE007',name:'Vũ Như Thành',nameCN:'羽茹成',dept:'Bếp',type:'Fulltime'},
+    {id:'BE009',name:'Quốc Vọng',nameCN:'國望',dept:'Bếp',type:'Fulltime'},
+    {id:'BE010',name:'Huỳnh Tấn Duy',nameCN:'黃進維',dept:'Bếp',type:'Fulltime'},
+    // === FULLTIME - PHỤC VỤ ===
+    {id:'NV005',name:'Minh Đức',nameCN:'明德',dept:'Phục vụ',type:'Fulltime'},
+    {id:'NV007',name:'Võ Thiệu Hưng',nameCN:'武紹興',dept:'Phục vụ',type:'Fulltime'},
+    {id:'NV008',name:'Yến Nhi',nameCN:'燕兒',dept:'Phục vụ',type:'Fulltime'},
+    {id:'NV009',name:'Thanh Trúc',nameCN:'清竹',dept:'Phục vụ',type:'Fulltime'},
+    {id:'NV010',name:'Vũ Linh',nameCN:'羽玲',dept:'Phục vụ',type:'Fulltime'},
+    {id:'RC001',name:'Trần Thanh',nameCN:'陳清',dept:'Phục vụ',type:'Fulltime'},
+    // === PARTIME - BẾP ===
+    {id:'PTBE007',name:'Anh ba Khia',nameCN:'英三佳',dept:'Bếp',type:'Partime'},
+    {id:'PTBE020',name:'Thanh Toàn',nameCN:'清全',dept:'Bếp',type:'Partime'},
+    {id:'PTBE021',name:'Trần Trân',nameCN:'陳真',dept:'Bếp',type:'Partime'},
+    {id:'PTBE025',name:'Nguyễn Lộc',nameCN:'阮祿',dept:'Bếp',type:'Partime'},
+    {id:'PTBE026',name:'Dương Bảo',nameCN:'楊寶',dept:'Bếp',type:'Partime'},
+    {id:'PTBE032',name:'Thành Phát',nameCN:'成發',dept:'Bếp',type:'Partime'},
+    // === PARTIME - PHỤC VỤ ===
+    {id:'PTNV001',name:'Tuyên',nameCN:'萱',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV004',name:'Duyên',nameCN:'緣',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV006',name:'Nghĩa',nameCN:'義',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV010',name:'Hoài Bảo',nameCN:'懷寶',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV011',name:'Phan Bảo',nameCN:'潘寶',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV013',name:'Phương Linh',nameCN:'芳玲',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV016',name:'Minh Duy',nameCN:'明維',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV018',name:'Nhựt Trường',nameCN:'日長',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV022',name:'Nam',nameCN:'男',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV023',name:'Hải Dương',nameCN:'海洋',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV028',name:'Thanh Hùng',nameCN:'清雄',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV029',name:'Uyển Nhi',nameCN:'婉兒',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV036',name:'Nguyễn Chí Ngoan',nameCN:'阮志權',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV037',name:'Đông Nghi',nameCN:'冬儀',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV038',name:'Quang Hùng',nameCN:'光雄',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV039',name:'Tuấn Kiệt',nameCN:'俊傑',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV040',name:'Nhất Thiên',nameCN:'一千',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV041',name:'Bình Huy',nameCN:'平輝',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV042',name:'Phạm Kiệt',nameCN:'范傑',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV043',name:'Trang',nameCN:'莊',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV044',name:'Trí',nameCN:'智',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV045',name:'Tuyền',nameCN:'泉',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV046',name:'Vân',nameCN:'雲',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV047',name:'Phúc',nameCN:'福',dept:'Phục vụ',type:'Partime'},
+    {id:'PTNV048',name:'Hà Nam',nameCN:'何男',dept:'Phục vụ',type:'Partime'},
+];
+
+// ===== STATE =====
+var currentEmp = null;
+var gpsOk = false;
+var currentDistance = null;
+var gpsWatchId = null;
+var clockInterval = null;
+var cooldownInterval = null;
+var lastActionTime = null; // from localStorage for cooldown
+
+// ===== DEVICE ID =====
+function getDeviceId(){
+    var did=localStorage.getItem('qg_device_id');
+    if(!did){did='DEV_'+Date.now()+'_'+Math.random().toString(36).substring(2,8);localStorage.setItem('qg_device_id',did);}
+    return did;
+}
+
+// ===== API CALL =====
+function apiCall(params, callback){
+    var url = API_URL + '?';
+    var parts = [];
+    for(var k in params) parts.push(encodeURIComponent(k)+'='+encodeURIComponent(params[k]));
+    url += parts.join('&');
+
+    // Use JSONP-style via script tag to avoid CORS issues with Apps Script redirects
+    // Actually, fetch with redirect:follow + no-cors won't work. Use image trick or form.
+    // Best approach: Use fetch with redirect mode
+    fetch(url, {redirect:'follow'})
+        .then(function(r){return r.json();})
+        .then(function(data){callback(null, data);})
+        .catch(function(err){
+            // Fallback: try with no-cors mode via script injection
+            var script = document.createElement('script');
+            var cbName = '_cb_' + Date.now();
+            window[cbName] = function(data){
+                delete window[cbName];
+                document.body.removeChild(script);
+                callback(null, data);
+            };
+            // Apps Script doesn't support JSONP, so we use a different approach
+            // Try XMLHttpRequest
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.onload = function(){
+                try{var data=JSON.parse(xhr.responseText);callback(null,data);}
+                catch(e){callback(e);}
+            };
+            xhr.onerror = function(){callback(new Error('Không thể kết nối server'));};
+            xhr.send();
+        });
+}
+
+// ===== CHECK CONNECTION =====
+function checkConnection(){
+    var dot=document.getElementById('connDot');
+    var text=document.getElementById('connText');
+    dot.className='conn-dot loading';
+    text.textContent='Đang kết nối...';
+    apiCall({action:'ping'}, function(err, data){
+        if(err||!data||!data.success){
+            dot.className='conn-dot fail';
+            text.textContent='Mất kết nối';
+        }else{
+            dot.className='conn-dot ok';
+            text.textContent='Đã kết nối Google Sheets';
+        }
+    });
+}
+
+// ===== GPS =====
+function haversine(lat1,lon1,lat2,lon2){
+    var R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+    var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function startGPS(){
+    var dot=document.getElementById('gpsDot'),text=document.getElementById('gpsText');
+    dot.className='gps-dot checking';text.textContent='Đang lấy vị trí...';
+    if(!navigator.geolocation){dot.className='gps-dot fail';text.innerHTML='<span style="color:var(--danger)">Trình duyệt không hỗ trợ GPS</span>';gpsOk=false;updateButtons();return;}
+    function onPos(pos){
+        var dist=haversine(pos.coords.latitude,pos.coords.longitude,CONFIG.LAT,CONFIG.LNG);
+        currentDistance=Math.round(dist);
+        if(dist<=CONFIG.RADIUS){
+            dot.className='gps-dot ok';
+            text.innerHTML='<i class="fas fa-check-circle" style="color:var(--success)"></i> Trong phạm vi quán <span class="gps-dist">('+currentDistance+'m)</span>';
+            gpsOk=true;
+        }else{
+            dot.className='gps-dot fail';
+            text.innerHTML='<i class="fas fa-times-circle" style="color:var(--danger)"></i> Ngoài phạm vi <span class="gps-dist">('+currentDistance+'m / max '+CONFIG.RADIUS+'m)</span>';
+            gpsOk=false;
+        }
+        updateButtons();
+    }
+    function onErr(err){
+        dot.className='gps-dot fail';
+        if(CONFIG.TEST_MODE){
+            text.innerHTML='<span style="color:#f39c12"><i class="fas fa-flask"></i> CHẾ ĐỘ TEST — bỏ qua GPS</span>';
+            gpsOk=true;currentDistance=0;
+        }else{
+            text.innerHTML=err.code===1?'<span style="color:var(--danger)"><i class="fas fa-lock"></i> Vui lòng cho phép truy cập vị trí</span>':'<span style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> Không lấy được vị trí</span>';
+            gpsOk=false;
+        }
+        updateButtons();
+    }
+    navigator.geolocation.getCurrentPosition(onPos,onErr,{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+    gpsWatchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,timeout:15000,maximumAge:5000});
+}
+function stopGPS(){if(gpsWatchId!==null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;}}
+
+// ===== COOLDOWN (chỉ cho VÀO CA) =====
+function getLastActionTime(){
+    var t=localStorage.getItem('qg_cc_lastcheckin_'+getDeviceId());
+    return t?parseInt(t):0;
+}
+function setLastActionTime(){
+    localStorage.setItem('qg_cc_lastcheckin_'+getDeviceId(), Date.now().toString());
+    lastActionTime=Date.now();
+}
+function getCooldownRemaining(){
+    var last=lastActionTime||getLastActionTime();
+    if(!last)return 0;
+    var remaining=CONFIG.COOLDOWN-(Date.now()-last);
+    return remaining>0?remaining:0;
+}
+function updateCooldown(){
+    var remaining=getCooldownRemaining();
+    var bar=document.getElementById('cooldownBar');
+    if(remaining>0){
+        bar.classList.add('show');
+        var hrs=Math.floor(remaining/3600000),mins=Math.floor((remaining%3600000)/60000),secs=Math.floor((remaining%60000)/1000);
+        document.getElementById('cooldownText').textContent='Thiết bị này chỉ được chấm công 1 lần trong ngày. Vui lòng chờ '+hrs+'h '+mins+'m '+secs+'s';
+    }else{bar.classList.remove('show');}
+    updateButtons();
+}
+function startCooldownTimer(){lastActionTime=getLastActionTime();updateCooldown();cooldownInterval=setInterval(updateCooldown,1000);}
+
+// ===== BUTTONS =====
+var checkedInToday=false; // NV hiện tại đã vào ca hôm nay chưa
+function updateButtons(){
+    var btnIn=document.getElementById('btnCheckin'),btnOut=document.getElementById('btnCheckout');
+    var hasCooldown=getCooldownRemaining()>0;
+    // VÀO CA: cần GPS OK + không cooldown + chưa vào ca
+    btnIn.disabled=!gpsOk||hasCooldown||checkedInToday;
+    // TAN CA: cần GPS OK + đã vào ca hôm nay
+    btnOut.disabled=!gpsOk||!checkedInToday;
+}
+
+// ===== LOGIN =====
+function doLogin(){
+    var code=document.getElementById('loginCode').value.trim().toUpperCase();
+    var errEl=document.getElementById('loginError');
+    if(!code){errEl.textContent='Vui lòng nhập mã nhân viên';errEl.style.display='block';return;}
+    var emp=EMPLOYEES.find(function(e){return e.id.toUpperCase()===code;});
+    if(!emp){errEl.textContent='Không tìm thấy mã NV: '+code;errEl.style.display='block';return;}
+    errEl.style.display='none';
+    currentEmp=emp;
+    localStorage.setItem('qg_cc_user',emp.id);
+    showMainScreen();
+}
+function doLogout(){
+    currentEmp=null;localStorage.removeItem('qg_cc_user');
+    stopGPS();if(clockInterval)clearInterval(clockInterval);if(cooldownInterval)clearInterval(cooldownInterval);
+    document.getElementById('loginScreen').style.display='block';
+    document.getElementById('mainScreen').style.display='none';
+    document.getElementById('loginCode').value='';
+}
+function autoLogin(){
+    var savedId=localStorage.getItem('qg_cc_user');
+    if(savedId){var emp=EMPLOYEES.find(function(e){return e.id===savedId;});if(emp){currentEmp=emp;showMainScreen();return;}}
+}
+
+// ===== MAIN =====
+function showMainScreen(){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('mainScreen').style.display='block';
+    document.getElementById('empAvatar').textContent=currentEmp.name.charAt(0);
+    document.getElementById('empNameDisplay').textContent=currentEmp.name+' '+currentEmp.nameCN;
+    document.getElementById('empDeptDisplay').textContent=currentEmp.dept;
+    document.getElementById('empTypeDisplay').textContent=currentEmp.type;
+    document.getElementById('empIdDisplay').textContent=currentEmp.id;
+    updateClock();clockInterval=setInterval(updateClock,1000);
+    startGPS();startCooldownTimer();loadHistory();
+}
+function updateClock(){
+    var now=new Date();
+    document.getElementById('clockTime').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    var days=['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
+    document.getElementById('clockDate').textContent=days[now.getDay()]+', '+now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear();
+}
+
+// ===== LOADING =====
+function showLoading(msg){document.getElementById('loadingText').textContent=msg||'Đang xử lý...';document.getElementById('loadingOverlay').classList.add('show');}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
+
+// ===== CHECKIN / CHECKOUT =====
+function doCheckin(){
+    if(!gpsOk){showStatus('error','Bạn phải ở trong phạm vi quán!');return;}
+    if(getCooldownRemaining()>0){showStatus('warning','Thiết bị này chỉ được chấm công 1 lần trong ngày!');return;}
+    showLoading('Đang ghi vào ca...');
+    apiCall({
+        action:'checkin',
+        empId:currentEmp.id,
+        empName:currentEmp.name,
+        distance:currentDistance,
+        deviceId:getDeviceId()
+    }, function(err, data){
+        hideLoading();
+        if(err){showStatus('error','Lỗi kết nối: '+err.message);return;}
+        if(!data.success){showStatus('error',data.message);return;}
+        showStatus('success','✅ VÀO CA lúc '+data.time+' — '+data.date);
+        checkedInToday=true;
+        setLastActionTime();updateCooldown();
+        updateButtons();
+        loadHistory();
+    });
+}
+function doCheckout(){
+    if(!gpsOk){showStatus('error','Bạn phải ở trong phạm vi quán!');return;}
+    showLoading('Đang ghi tan ca...');
+    apiCall({
+        action:'checkout',
+        empId:currentEmp.id,
+        empName:currentEmp.name,
+        distance:currentDistance,
+        deviceId:getDeviceId()
+    }, function(err, data){
+        hideLoading();
+        if(err){showStatus('error','Lỗi kết nối: '+err.message);return;}
+        if(!data.success){showStatus('error',data.message);return;}
+        var msg='✅ TAN CA lúc '+data.time+' — '+data.date;
+        if(data.hours)msg+=' (Làm '+data.hours+' giờ)';
+        showStatus('success', msg);
+        checkedInToday=false;
+        updateButtons();
+        loadHistory();
+    });
+}
+
+// ===== STATUS =====
+function showStatus(type,msg){
+    var el=document.getElementById('statusMsg');
+    el.className='status-msg show '+type;
+    el.textContent=msg;
+    setTimeout(function(){el.classList.remove('show');},6000);
+}
+
+// ===== HISTORY =====
+// Parse date — có thể nhận: "03/05/2026", "2026-05-03", "Sun May 03 2026 00:00:00 GMT+0700...", Date ISO string
+function parseDate(v){
+    if(!v)return '';
+    var s=String(v);
+    // Nếu đã đúng format dd/MM/yyyy
+    if(/^\d{2}\/\d{2}\/\d{4}$/.test(s))return s;
+    // Nếu là yyyy-MM-dd
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+    // Nếu chứa Date string dài → parse
+    try{
+        var d=new Date(s);
+        if(!isNaN(d.getTime()))return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    }catch(e){}
+    return s;
+}
+// Parse time — có thể nhận: "15:41:29", "Sat Dec 30 1899 15:41:29 GMT+0706...", Date ISO
+function parseTime(v){
+    if(!v)return '';
+    var s=String(v);
+    // Nếu đã đúng format HH:mm:ss
+    if(/^\d{2}:\d{2}:\d{2}$/.test(s))return s;
+    // Nếu chứa Date string → tìm giờ bên trong
+    var m=s.match(/(\d{2}:\d{2}:\d{2})/);
+    if(m)return m[1];
+    return s;
+}
+// Lấy ngày hôm nay dạng dd/MM/yyyy để so sánh
+function getTodayVN(){var t=new Date();return String(t.getDate()).padStart(2,'0')+'/'+String(t.getMonth()+1).padStart(2,'0')+'/'+t.getFullYear();}
+function loadHistory(){
+    if(!currentEmp)return;
+    var el=document.getElementById('historyList');
+    el.innerHTML='<div class="no-history"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+    apiCall({action:'history',empId:currentEmp.id}, function(err, data){
+        if(err||!data||!data.success){el.innerHTML='<div class="no-history">Không tải được dữ liệu</div>';return;}
+        if(!data.records||!data.records.length){
+            checkedInToday=false;updateButtons();
+            el.innerHTML='<div class="no-history">Chưa có dữ liệu chấm công</div>';return;
+        }
+        // Detect trạng thái hôm nay (format dd/MM/yyyy)
+        var todayStr=getTodayVN();
+        var lastTodayType=null;
+        data.records.forEach(function(r){
+            var rd=parseDate(r.date);
+            if(rd===todayStr)lastTodayType=r.type;
+        });
+        checkedInToday=(lastTodayType==='in');
+        updateButtons();
+        var h='';
+        data.records.slice().reverse().forEach(function(r){
+            var isIn=r.type==='in';
+            var timeStr=parseTime(r.time);
+            var dateStr=parseDate(r.date);
+            h+='<div class="history-item">';
+            h+='<div class="history-icon '+(isIn?'in':'out')+'"><i class="fas fa-'+(isIn?'sign-in-alt':'sign-out-alt')+'"></i></div>';
+            h+='<div><div class="history-time">'+(isIn?'Vào ca':'Tan ca')+' '+timeStr+'</div>';
+            h+='<div class="history-date">'+dateStr+'</div></div>';
+            h+='</div>';
+        });
+        el.innerHTML=h;
+    });
+}
+
+// ===== RESET COOLDOWN (dùng khi test) =====
+function resetCooldown(){
+    var did=getDeviceId();
+    localStorage.removeItem('qg_cc_last_'+did);
+    localStorage.removeItem('qg_cc_lastcheckin_'+did);
+    lastActionTime=null;
+    checkedInToday=false;
+    updateCooldown();
+    showStatus('info','Đã xóa cooldown thiết bị này!');
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded',function(){
+    document.getElementById('loginCode').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+    checkConnection();
+    autoLogin();
+});
+</script>
+</body>
+</html>
